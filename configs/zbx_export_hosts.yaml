@@ -1,0 +1,244 @@
+zabbix_export:
+  version: '5.4'
+  date: '2022-01-03T21:12:22Z'
+  groups:
+    -
+      uuid: 5af3c1b1e0574939a1f87c4fb806945d
+      name: Hors-production
+    -
+      uuid: dc579cd7a1a34222933f24f52a68bcd8
+      name: 'Linux servers'
+    -
+      uuid: 6d2f9f94bee449f3bf066a3a335de06e
+      name: NAS
+    -
+      uuid: f9649c54d41a4c15957fc81432d9a9b2
+      name: Production
+    -
+      uuid: 137f19e6e2dc4219b33553b812627bc2
+      name: 'Virtual machines'
+    -
+      uuid: 6f6799aa69e844b4b3918f779f2abf08
+      name: 'Zabbix servers'
+  hosts:
+    -
+      host: andf.router
+      name: PROD/ANDF/DG/ROUTER
+      description: 'Router Firewall Cisco'
+      groups:
+        -
+          name: Production
+      inventory_mode: DISABLED
+    -
+      host: cadastre.bj
+      name: PROD/MEF/CADASTRE
+      templates:
+        -
+          name: 'Linux by Zabbix agent'
+        -
+          name: 'SIF CADASTRE by TRUST Ingenierie'
+      groups:
+        -
+          name: 'Linux servers'
+        -
+          name: Production
+        -
+          name: 'Virtual machines'
+      interfaces:
+        -
+          ip: 10.250.2.220
+          dns: cadastre.bj
+          interface_ref: if1
+      items:
+        -
+          name: linux.distrib.version
+          key: 'system.sw.os[name]'
+          delay: 1d
+          trends: '0'
+          value_type: CHAR
+          interface_ref: if1
+      inventory:
+        name: andfcat
+        os: 'Linux version 4.15.0-163-generic (buildd@lcy01-amd64-021) (gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04)) #171-Ubuntu SMP Fri '
+      inventory_mode: AUTOMATIC
+    -
+      host: cartoeterre.andf.bj
+      name: PROD/MEF/CARTO
+      templates:
+        -
+          name: 'Linux by Zabbix agent'
+        -
+          name: 'SIF CARTO by TRUST Ingenierie'
+      groups:
+        -
+          name: 'Linux servers'
+        -
+          name: Production
+        -
+          name: 'Virtual machines'
+      interfaces:
+        -
+          ip: 10.250.2.188
+          dns: cartoeterre.andf.bj
+          interface_ref: if1
+      macros:
+        -
+          macro: '{$MEMORY.UTIL.MAX}'
+          value: '99'
+      inventory_mode: DISABLED
+    -
+      host: eterre.andf.bj
+      name: PROD/MEF/ETERRE
+      templates:
+        -
+          name: 'Linux by Zabbix agent'
+        -
+          name: 'SIF ETERRE by TRUST Ingenierie'
+      groups:
+        -
+          name: 'Linux servers'
+        -
+          name: Production
+        -
+          name: 'Virtual machines'
+      interfaces:
+        -
+          ip: 10.250.2.155
+          dns: eterre2020.andf.bj
+          interface_ref: if1
+      items:
+        -
+          name: linux.distrib.version
+          key: 'system.sw.os[name]'
+          delay: 1d
+          trends: '0'
+          value_type: CHAR
+          interface_ref: if1
+      httptests:
+        -
+          name: 'Test connectivité internet'
+          steps:
+            -
+              name: 'Test google'
+              url: 'https://www.google.bj/'
+              follow_redirects: 'NO'
+              status_codes: '200'
+      macros:
+        -
+          macro: '{$MEMORY.UTIL.MAX}'
+          value: '99'
+      inventory:
+        name: debian
+        os: 'Linux version 4.9.0-16-amd64 (debian-kernel@lists.debian.org) (gcc version 6.3.0 20170516 (Debian 6.3.0-18+deb9u1) ) #1 SMP Debi'
+        software_app_a: 3.1.5
+      inventory_mode: AUTOMATIC
+    -
+      host: mef.proxy.blr
+      name: PROD/MEF/ROUTER/BLR
+      groups:
+        -
+          name: Production
+      inventory_mode: DISABLED
+    -
+      host: mef.proxy.web
+      name: PROD/MEF/PROXY
+      groups:
+        -
+          name: Production
+      inventory_mode: DISABLED
+    -
+      host: nas.backup.app
+      name: PROD/ANDF/NAS/BACKUP/APP
+      groups:
+        -
+          name: NAS
+        -
+          name: Production
+      interfaces:
+        -
+          type: SNMP
+          ip: 10.10.201.6
+          port: '161'
+          details:
+            community: '{$SNMP_COMMUNITY}'
+          interface_ref: if1
+      items:
+        -
+          name: Ping
+          type: SIMPLE
+          key: 'icmpping[,4]'
+          interface_ref: if1
+      inventory_mode: DISABLED
+    -
+      host: nas.backup.user
+      name: PROD/ANDF/NAS/SHARE/USER
+      groups:
+        -
+          name: NAS
+        -
+          name: Production
+      interfaces:
+        -
+          type: SNMP
+          ip: 10.10.201.49
+          port: '161'
+          details:
+            community: '{$SNMP_COMMUNITY}'
+          interface_ref: if1
+      items:
+        -
+          name: Ping
+          type: SIMPLE
+          key: 'icmpping[,4]'
+          interface_ref: if1
+      inventory_mode: DISABLED
+    -
+      host: preprod.sif
+      name: PREPROD/ANDF/SIFONCIER
+      groups:
+        -
+          name: Hors-production
+      inventory_mode: DISABLED
+    -
+      host: zabbix-server
+      name: PROD/ANDF/SUPERVISION
+      templates:
+        -
+          name: 'Linux by Zabbix agent'
+        -
+          name: 'Zabbix server health'
+      groups:
+        -
+          name: 'Linux servers'
+        -
+          name: Production
+        -
+          name: 'Zabbix servers'
+      interfaces:
+        -
+          useip: 'NO'
+          dns: zabbix-agent
+          interface_ref: if1
+      httptests:
+        -
+          name: 'Test connexion DG'
+          delay: 30s
+          steps:
+            -
+              name: 'Tset connexion google'
+              url: 'https://www.google.com'
+              follow_redirects: 'NO'
+      inventory_mode: DISABLED
+  triggers:
+    -
+      expression: 'last(/zabbix-server/web.test.fail[Test connexion DG])=1'
+      name: 'Indisponibilité connexion internet DG'
+      priority: HIGH
+    -
+      expression: 'last(/eterre.andf.bj/web.test.fail[Test connectivité internet],#1)=1'
+      name: 'Indisponibilité connexion internet MEF'
+      priority: AVERAGE
+    -
+      expression: 'last(/eterre.andf.bj/net.tcp.service[tcp,,5432],#1)=1'
+      name: 'Service postgres 5432 ouvert'
+      priority: WARNING

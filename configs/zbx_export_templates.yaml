@@ -1,0 +1,135 @@
+zabbix_export:
+  version: '5.4'
+  date: '2022-01-03T21:12:49Z'
+  groups:
+    -
+      uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    -
+      uuid: 83b07c3cc8844becb554c4b927bc1547
+      template: 'SIF CADASTRE by TRUST Ingenierie'
+      name: 'SIF CADASTRE by TRUST Ingenierie'
+      groups:
+        -
+          name: Templates
+      httptests:
+        -
+          uuid: 399f0e98268c40b3a9404f5ed58c2b23
+          name: 'Webapp check'
+          steps:
+            -
+              name: Frontend
+              url: 'https://{HOST.DNS}/'
+              follow_redirects: 'NO'
+              status_codes: '200'
+            -
+              name: Backend
+              url: 'https://{HOST.DNS}/back-api/search/municipalities'
+              follow_redirects: 'NO'
+              status_codes: '200'
+    -
+      uuid: 9dff47b8a66c48a8b7d5f163bf1098e2
+      template: 'SIF CARTO by TRUST Ingenierie'
+      name: 'SIF CARTO by TRUST Ingenierie'
+      groups:
+        -
+          name: Templates
+      items:
+        -
+          uuid: b6c25908a433489cb0cb83ea32c0b2a1
+          name: 'Version application GeoServer'
+          type: HTTP_AGENT
+          key: geoserver.version
+          delay: 1d
+          trends: '0'
+          value_type: TEXT
+          preprocessing:
+            -
+              type: REGEX
+              parameters:
+                - 'This GeoServer instance is running version <strong>(.*)</strong>'
+                - \1
+          timeout: 10s
+          url: 'https://{HOST.DNS}/geoserver/web/'
+      httptests:
+        -
+          uuid: 047ee6fa171f428282f8d9cfac73ce92
+          name: 'Geoserver check'
+          steps:
+            -
+              name: Backoffice
+              url: 'https://{HOST.DNS}/geoserver/index.html'
+              follow_redirects: 'NO'
+              status_codes: '200'
+    -
+      uuid: f66b05b9905142f58129afbe52a87451
+      template: 'SIF ETERRE by TRUST Ingenierie'
+      name: 'SIF ETERRE by TRUST Ingenierie'
+      groups:
+        -
+          name: Templates
+      items:
+        -
+          uuid: 4097b1d2bca64c10a397f87f57676740
+          name: 'Test TCP port 5432'
+          key: 'net.tcp.service[tcp,,5432]'
+          delay: 10m
+        -
+          uuid: 8855f28f15ff438984718382742616fd
+          name: 'Version application SIFI'
+          type: HTTP_AGENT
+          key: sifi.version
+          delay: 1h
+          trends: '0'
+          value_type: TEXT
+          inventory_link: SOFTWARE_APP_A
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.body.applicationVersion
+          url: 'https://{HOST.DNS}/back-api/about'
+          output_format: JSON
+          triggers:
+            -
+              uuid: 917e19d2d2b34ddeb5ebcef0539b8dcb
+              expression: 'change(/SIF ETERRE by TRUST Ingenierie/sifi.version)=1'
+              name: 'Changement version backend'
+              priority: INFO
+      httptests:
+        -
+          uuid: 7a64612b9bf8442b9ed3ae076ce9dfd6
+          name: 'Backend checks'
+          steps:
+            -
+              name: 'About info'
+              url: 'https://{HOST.DNS}/back-api/about'
+              follow_redirects: 'NO'
+        -
+          uuid: 3f9730df50eb4af0bb65154f5151d7e5
+          name: 'Frontend checks'
+          steps:
+            -
+              name: Homepage
+              url: 'https://{HOST.DNS}/'
+              follow_redirects: 'NO'
+              status_codes: '200'
+  triggers:
+    -
+      uuid: 021246e3a9e04accac0cf6d6d52eb41e
+      expression: 'last(/SIF CADASTRE by TRUST Ingenierie/web.test.fail[Webapp check],#1)=1'
+      name: 'Indisponibilité du service Cadastre'
+      priority: HIGH
+      description: 'Test des réponses backend et frontend'
+    -
+      uuid: be5656293ea14c859bf62b300e1f4db0
+      expression: 'last(/SIF CARTO by TRUST Ingenierie/web.test.fail[Geoserver check],#1)=1'
+      name: 'Indisponibilité du service Geoserver'
+      priority: WARNING
+    -
+      uuid: e2abcdffe6ce458a9aaa1463f84dbc16
+      expression: 'last(/SIF ETERRE by TRUST Ingenierie/web.test.fail[Backend checks],#1)=1 or last(/SIF ETERRE by TRUST Ingenierie/web.test.fail[Frontend checks],#1)=1'
+      name: 'Indisponibilité service ETERRE'
+      priority: HIGH
+      description: 'Test des réponses backend et frontend'
